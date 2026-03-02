@@ -77,7 +77,7 @@ Bitcoin、Ethereum、TRON、BNB Smart Chain、Polygon、Arbitrum、Optimism、Ba
 
 ## 快速开始
 
-1. 在 [MistTrack 控制台](https://dashboard.misttrack.io) 注册并获取 API Key
+1. 在 [MistTrack 控制台](https://dashboard.misttrack.io/upgrade) 使用邮箱验证码登录，然后订阅标准版套餐（新用户可以选择 10 美金的限时体验套餐），付款后即可[创建 API Key](https://dashboard.misttrack.io/apikeys)
 2. 设置环境变量（推荐）：
    ```bash
    export MISTTRACK_API_KEY=your_api_key_here
@@ -192,7 +192,7 @@ Bitcoin, Ethereum, TRON, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base, Ava
 
 ## Quick Start
 
-1. Sign up at [MistTrack Dashboard](https://dashboard.misttrack.io) and get your API Key
+1. Log in to the [MistTrack Dashboard](https://dashboard.misttrack.io/upgrade) using email verification code, then subscribe to the Standard Plan (new users can choose the limited-time trial plan for $10). After payment, you can [create an API Key](https://dashboard.misttrack.io/apikeys)
 2. Set the environment variable (recommended):
    ```bash
    export MISTTRACK_API_KEY=your_api_key_here
