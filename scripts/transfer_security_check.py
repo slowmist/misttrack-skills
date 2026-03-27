@@ -3,19 +3,27 @@
 transfer_security_check.py — 转账地址 AML 安全检测（MistTrack 集成）
 
 将 MistTrack 风险评分集成到以下技能的转账流程中：
-  - bitget-wallet-skill   (转账 / Swap 前检测收款方地址)
+  - bitget-wallet-skill        (转账 / Swap 前检测收款方地址)
   - Trust Wallet wallet-core  (构建含 toAddress 签名交易前检测)
   - Trust Wallet trust-web3-provider (处理 eth_sendTransaction / ton_sendTransaction 前检测)
+  - Binance spot              (提币前检测收款方地址)
+  - Binance margin-trading    (提币前检测收款方地址)
+  - Binance derivatives-trading-usds-futures (提币前检测收款方地址)
+  - OKX Agent Skills          (OnchainOS 提币前检测收款方地址)
 
 用法：
   python3 scripts/transfer_security_check.py --address <address> --chain <chain_code>
   python3 scripts/transfer_security_check.py --address <address> --chain eth --json
 
-支持的 chain 代码：
+支持的 chain 代码（大小写不敏感）：
   # bitget-wallet-skill 格式：
   eth, sol, bnb, trx, base, arbitrum, optimism, matic, ton, suinet, avax, zksync, ltc, doge, bch
   # Trust Wallet wallet-core CoinType 格式（别名）：
   bitcoin, btc, solana, tron, polygon, smartchain, bsc, tonchain
+  # Binance Skills network 格式（大写亦可）：
+  BSC, ARBI, OPT, POLYGON, AVAX, BASE, ZKSYNC, ETH, BTC, SOL, TRX, BNB, LTC, DOGE, BCH, TON
+  # OKX API v5 chain 格式（自动剥离 `币种-` 前缀，支持如 USDT-ERC20、BTC-Bitcoin）：
+  erc20, trc20, bitcoin, solana, arbitrum one, optimism, avalanche c-chain, zksync era, bep20
 
 不支持的链（MistTrack 未收录，返回 exit 3）：
   aptos, cosmos, atom
@@ -36,6 +44,12 @@ Exit codes：
   # Trust Wallet wallet-core 流程
   python3 scripts/transfer_security_check.py --address 1A... --chain bitcoin
   python3 scripts/transfer_security_check.py --address 0x... --chain polygon --json
+  # Binance Skills 流程（network 参数，大小写均可）
+  python3 scripts/transfer_security_check.py --address 0x... --chain BSC
+  python3 scripts/transfer_security_check.py --address 0x... --chain ARBI
+  python3 scripts/transfer_security_check.py --address 0x... --chain OPT --json
+  # OKX Agent Skills 流程（支持完整的 `USDT-ERC20` 格式）
+  python3 scripts/transfer_security_check.py --address 0x... --chain USDT-ERC20 --json
 """
 
 import argparse
@@ -53,7 +67,8 @@ BASE_URL = "https://openapi.misttrack.io"
 REQUEST_TIMEOUT = 30  # seconds
 
 # Map chain identifiers → MistTrack coin parameter
-# Covers both bitget-wallet-skill chain codes and Trust Wallet wallet-core CoinType names
+# Covers bitget-wallet-skill, Trust Wallet wallet-core, and Binance Skills network names.
+# All keys are lowercase; --chain input is lowercased automatically in parse_args.
 CHAIN_TO_COIN: dict[str, str] = {
     # ── bitget-wallet-skill chain codes ─────────────────────────────────────
     "eth": "ETH",
@@ -78,8 +93,26 @@ CHAIN_TO_COIN: dict[str, str] = {
     "tron": "TRX",              # CoinType.tron (alias for trx)
     "polygon": "POL-Polygon",   # CoinType.polygon (alias for matic)
     "smartchain": "BNB",        # CoinType.smartChain
-    "bsc": "BNB",               # common BSC abbreviation
+    "bsc": "BNB",               # BNB Chain / BEP20 — Binance Skills & common abbreviation
     "tonchain": "TON",          # alias distinguishing from bitget's 'ton'
+    # ── Binance Skills network identifiers ───────────────────────────────────
+    # (Binance withdrawal API `network` parameter; lowercased by parse_args)
+    # Chains already covered above via lowercase aliases (eth, sol, bnb, trx,
+    # btc, ltc, doge, bch, ton, avax, base, zksync, polygon/matic, bsc) need
+    # no duplicate entry — only Binance-specific shorthand names are added here.
+    "arbi": "ETH-Arbitrum",     # Binance network code for Arbitrum One
+    "opt": "ETH-Optimism",      # Binance network code for OP Mainnet
+    "op": "ETH-Optimism",       # short alias used by some Binance contexts
+    "azec": "ETH-zkSync",       # Binance alternate network code for zkSync Era
+    # ── OKX API v5 chain identifiers ─────────────────────────────────────────
+    # (OKX withdrawal API `chain` parameter; lowercased and stripped of "CCY-" prefix)
+    "erc20": "ETH",             # ETH
+    "trc20": "TRX",             # TRX
+    "bep20": "BNB",             # BSC
+    "arbitrum one": "ETH-Arbitrum",
+    "avalanche c-chain": "AVAX-Avalanche",
+    "zksync era": "ETH-zkSync",
+    "bitcoin cash": "BCH",
 }
 
 # Chains that are not yet supported by MistTrack — exit cleanly with an explanation
@@ -266,7 +299,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "检测转账目标地址的 AML 风险\n"
-            "支持 Bitget Wallet Skill 和 Trust Wallet Skills (wallet-core / trust-web3-provider) 集成"
+            "支持 Bitget Wallet Skill、Trust Wallet Skills (wallet-core / trust-web3-provider)\n"
+            "以及 Binance 和 OKX Agent Skills 集成\n"
+            "--chain 参数大小写不敏感（BSC 与 bsc 等价），并自动处理 OKX USDT-ERC20 格式"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -278,11 +313,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--chain", "-c",
         required=True,
-        choices=all_supported,
+        # choices validation happens after lowercasing in post-parse step
         help=(
-            f"链标识符（bitget-wallet-skill 或 Trust Wallet CoinType 格式）\n"
+            f"链标识符（大小写不敏感）\n"
             f"支持（有 MistTrack 数据）：{', '.join(sorted(CHAIN_TO_COIN.keys()))}\n"
-            f"不支持（exit 3）：{', '.join(sorted(UNSUPPORTED_CHAINS.keys()))}"
+            f"不支持（exit 3）：{', '.join(sorted(UNSUPPORTED_CHAINS.keys()))}\n"
+            f"Binance 格式示例：BSC, ARBI, OPT\n"
+            f"OKX 格式示例：USDT-ERC20, BTC-Bitcoin（自动剥离 `币种-` 前缀）"
         ),
     )
     parser.add_argument(
@@ -296,7 +333,27 @@ def parse_args() -> argparse.Namespace:
         dest="json_output",
         help="以 JSON 格式输出结果（适合 Agent 机器解析）",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    # Normalize chain identifier to lowercase
+    args.chain = args.chain.strip().lower()
+
+    # OKX specific handling: strip "CCY-" prefix (e.g. "usdt-erc20" -> "erc20", "btc-bitcoin" -> "bitcoin")
+    if "-" in args.chain:
+        # Check if the right part maps to a valid chain, if so strip the left part
+        right_part = args.chain.split("-", 1)[1].strip()
+        if right_part in CHAIN_TO_COIN or right_part in UNSUPPORTED_CHAINS:
+            args.chain = right_part
+
+    # Validate after normalization (replaces argparse choices= validation)
+    if args.chain not in CHAIN_TO_COIN and args.chain not in UNSUPPORTED_CHAINS:
+        valid = sorted(set(list(CHAIN_TO_COIN.keys()) + list(UNSUPPORTED_CHAINS.keys())))
+        parser.error(
+            f"argument --chain/-c: invalid choice: '{args.chain}'\n"
+            f"Valid choices (case-insensitive): {', '.join(valid)}"
+        )
+
+    return args
 
 
 def main() -> None:

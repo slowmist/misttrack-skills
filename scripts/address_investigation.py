@@ -20,12 +20,13 @@ MistTrack 完整地址调查脚本
 """
 
 import argparse
-import os
-import requests
 import json
+import os
 import sys
 from datetime import datetime
 from typing import Optional
+
+import requests
 
 
 BASE_URL = "https://openapi.misttrack.io"

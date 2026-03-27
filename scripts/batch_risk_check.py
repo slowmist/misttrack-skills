@@ -21,13 +21,14 @@ MistTrack 批量异步风险评分脚本
 """
 
 import argparse
-import os
-import requests
-import time
 import csv
 import json
+import os
 import sys
+import time
 from typing import List, Optional
+
+import requests
 
 
 BASE_URL = "https://openapi.misttrack.io"

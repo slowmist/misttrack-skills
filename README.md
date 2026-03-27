@@ -1,127 +1,12 @@
 # MistTrack Skills
 
-[中文](#chinese) · [English](#english)
-
----
-
-<a name="chinese"></a>
-
-# MistTrack Skills（中文）
-
-MistTrack OpenAPI 的 AI Agent 技能包，用于加密货币地址风险分析、AML 合规检测和链上交易追踪。
-
-## 简介
-
-[MistTrack](https://misttrack.io/) 是由 [SlowMist](https://www.slowmist.com/en/) 开发的反洗钱追踪工具（AML），收录超过 4 亿个地址和 50 万条威胁情报。
-
-- 支持 OpenClaw、Claude Code 等主流工具
-- 兼容 **Bitget Wallet Skill** 和 **Trust Wallet Skills**，在安装对应 Skills 并执行交易时可自动调用 MistTrack Skills 进行地址安全检测
-
-## 安装
-
-```bash
-npx skills add slowmist/misttrack-skills
-```
-
-## 提问技巧
-
-### 🔍 快速风险检测（KYT）
-
-- 帮我检测 `0x6487B5006904f3Db3C4a3654409AE92b87eD442f` 这个 ETH 地址的风险评分
-- 这个 TRX 地址 `TNfK1r5jb8Wa1Ph1MApjqJobsY8SPwj3Yh` 安全吗？有没有洗钱记录？
-- 帮我查一下这笔交易 `0xabc123...` 的风险评分，看看是否涉及制裁实体
-
-### 🧑‍💼 地址完整画像调查
-
-- 对 `0x6487B5006904f3Db3C4a3654409AE92b87eD442f` 做一个完整的链上调查，包括标签、余额概览、风险评分、平台交互历史和主要交易对手
-- 这个 BTC 地址 `1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf` 的资金来源和流向是什么？
-- 帮我分析 `0xd90e2f925da726b50c4ed8d0fb90ad053324f31b` 的行为模式，它主要在 DEX、混币器还是交易所之间活动？
-
-### 💸 转账前安全检测
-
-> 配合 **Bitget Wallet Skill** 或 **Trust Wallet Skills** 使用，转账前自动检测收款地址
-
-- 将我的 0.1 ETH 兑换成 USDT 到 `0x6487B5006904f3Db3C4a3654409AE92b87eD442f`（会自动检测目标地址风险）
-- 将我的 100 TRX 发送到 `TNfK1r5jb8Wa1Ph1MApjqJobsY8SPwj3Yh` 这个地址
-- 帮我把 500 USDT 从 BNB Chain 转到 `0x28C6c06298d514Db089934071355E5743bf21d60`
-
-### 🔗 交易溯源与资金流向
-
-- 追踪 `0x6487B5006904f3Db3C4a3654409AE92b87eD442f` 的资金去向，重点看转出到哪些地址
-- 这个地址跟 Tornado Cash 有没有过直接或间接交互？
-- 帮我查 `TNfK1r5jb8Wa1Ph1MApjqJobsY8SPwj3Yh` 最近的交易对手，看看主要资金来自哪里
-
-### ℹ️ 状态与支持查询
-
-- MistTrack 支持 Solana 上的 USDT 吗？
-- 帮我列出 MistTrack 目前支持的所有代币
-
-## 支持的 API
-
-| API 端点 | 功能 |
-|----------|------|
-| `v1/status` | 获取 API 状态和支持代币列表 |
-| `v1/address_labels` | 获取地址标签（实体名称、地址类型） |
-| `v1/address_overview` | 获取地址余额和统计数据 |
-| `v2/risk_score` | 获取地址/交易风险评分（同步） |
-| `v2/risk_score_create_task` | 创建风险评分任务（异步） |
-| `v2/risk_score_query_task` | 查询风险评分任务结果（异步） |
-| `v1/transactions_investigation` | 交易调查（转入/转出流向分析） |
-| `v1/address_action` | 地址行为分析（DEX/Exchange/Mixer 占比） |
-| `v1/address_trace` | 地址画像（平台交互、恶意事件、关联信息） |
-| `v1/address_counterparty` | 交易对手分析 |
-
-## 支持的区块链
-
-Bitcoin、Ethereum、TRON、BNB Smart Chain、Polygon、Arbitrum、Optimism、Base、Avalanche、zkSync Era、Toncoin、Solana、Litecoin、Dogecoin、Bitcoin Cash、Merlin Chain、HashKey Chain、Sui、IoTeX
-
-## 快速开始
-
-1. 在 [MistTrack 控制台](https://dashboard.misttrack.io/upgrade) 使用邮箱验证码登录，然后订阅标准版套餐（新用户可以选择 10 美金的限时体验套餐），付款后即可[创建 API Key](https://dashboard.misttrack.io/apikeys)
-2. 设置环境变量（推荐）：
-   ```bash
-   export MISTTRACK_API_KEY=your_api_key_here
-   ```
-3. 参考 `SKILL.md` 中的完整 API 文档
-4. 参考 `scripts/` 目录中的示例脚本
-
-## 示例脚本
-
-```bash
-export MISTTRACK_API_KEY=your_api_key_here
-
-# 单个地址风险评分
-python scripts/risk_check.py --address 0x... --coin ETH
-
-# 批量异步风险评分
-python scripts/batch_risk_check.py --input addresses.txt --coin ETH
-
-# 完整地址调查
-python scripts/address_investigation.py --address 0x... --coin ETH
-
-# 转账前安全检测（Bitget Wallet / Trust Wallet 集成）
-python scripts/transfer_security_check.py --address 0x... --chain eth
-```
-
-## 速率限制
-
-| 套餐 | 速率 | 每日限额 |
-|------|------|----------|
-| Standard | 1 次/秒 | 10,000 次/天 |
-| Compliance | 5 次/秒 | 50,000 次/天 |
-| Enterprise | 无限制 | 无限制 |
-
-## 文档
-
-- [完整 API 文档](./SKILL.md)
-- [MistTrack 官方文档](https://docs.misttrack.io/)
-- [常见错误消息](https://docs.misttrack.io/support/common-error-messages)
+[English](#english) · [中文](#chinese)
 
 ---
 
 <a name="english"></a>
 
-# MistTrack Skills (English)
+# MistTrack Skills
 
 An AI Agent skill pack for the MistTrack OpenAPI — cryptocurrency address risk analysis, AML compliance checks, and on-chain transaction tracing.
 
@@ -130,13 +15,20 @@ An AI Agent skill pack for the MistTrack OpenAPI — cryptocurrency address risk
 [MistTrack](https://misttrack.io/) is an AML tracking tool developed by [SlowMist](https://www.slowmist.com/en/), covering 400M+ addresses and 500K+ threat intelligence entries.
 
 - Works with OpenClaw, Claude Code, and other major agent platforms
-- Integrates with **Bitget Wallet Skill** and **Trust Wallet Skills** — automatically runs MistTrack address security checks before any transfer
+- Integrates with **Bitget Wallet Skill** / **Trust Wallet Skills** / **Binance Skills** / **OKX Agent Skills** — automatically runs MistTrack address security checks before any transfer
+- Supports identifying and parsing multi-signature addresses
+- Supports x402 Payment, allowing usage without an API key by paying via x402.
 
 ## Installation
 
 ```bash
 npx skills add slowmist/misttrack-skills
 ```
+
+## Where to Find Our Project
+
+- [Skills](https://skills.sh/slowmist/misttrack-skills/misttrack-skills)
+- [Clawhub](https://clawhub.ai/MistTrack/misttrack-aml-skills)
 
 ## Example Prompts
 
@@ -152,9 +44,15 @@ npx skills add slowmist/misttrack-skills
 - Where did the funds in BTC address `1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf` come from and go to?
 - Analyze the behavior of `0xd90e2f925da726b50c4ed8d0fb90ad053324f31b` — is it mostly interacting with DEXes, mixers, or exchanges?
 
+### 🔑 Account Multisig Information Check
+
+- Help me check whether this ETH address `0x849D52316331967b6fF1198e5E32A0eB168D039d` is a multisig address
+- Whether this TRX address `TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW` is a multisig address
+- Whether this BTC address `3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy` is a multisig address
+
 ### 💸 Pre-Transfer Security Check
 
-> Works with **Bitget Wallet Skill** or **Trust Wallet Skills** — automatically checks the recipient address before any transfer
+> Works with **Bitget Wallet Skill** / **Trust Wallet Skills** / **Binance Skills** / **OKX Agent Skills** — automatically checks the recipient address before any transfer
 
 - Swap my 0.1 ETH to USDT and send to `0x6487B5006904f3Db3C4a3654409AE92b87eD442f` (auto-checks recipient risk)
 - Send 100 TRX to `TNfK1r5jb8Wa1Ph1MApjqJobsY8SPwj3Yh`
@@ -214,11 +112,27 @@ python scripts/batch_risk_check.py --input addresses.txt --coin ETH
 # Full address investigation
 python scripts/address_investigation.py --address 0x... --coin ETH
 
-# Pre-transfer security check (Bitget Wallet / Trust Wallet integration)
+# Pre-transfer security check
 python scripts/transfer_security_check.py --address 0x... --chain eth
+
+# ETH multisig check
+python3 scripts/multisig_analysis.py --address 0x... --chain eth
+
 ```
 
-## Rate Limits
+## x402 Payment (Pay-per-use)
+
+If you do not have a MistTrack API Key, you can use the x402 payment protocol to pay per API call. We currently support EVM (EIP-3009) payments using USDC.
+
+```bash
+# Example: Pay-per-use via CLI
+python3 scripts/pay.py pay \
+  --url https://openapi.misttrack.io/x402/address_labels?address=0x... \
+  --private-key <your_private_key> \
+  --chain-id 8453
+```
+
+## API Rate Limits
 
 | Plan | Rate | Daily Limit |
 |------|------|-------------|
@@ -226,8 +140,186 @@ python scripts/transfer_security_check.py --address 0x... --chain eth
 | Compliance | 5 req/sec | 50,000/day |
 | Enterprise | Unlimited | Unlimited |
 
+## Compatible Platforms
+
+### ✅ Recommended Tools
+
+| Platform                | Type              | How to Use |
+|-------------------------|-------------------|------------|
+| OpenClaw               | Native Platform   | install skill from Clawhub |
+| Claude Code            | CLI Agent         | Clone repo |
+| Codex CLI              | CLI Agent         | Clone repo |
+| Crush                  | CLI Agent         | Clone repo |
+| Cursor                 | IDE Agent         | Clone into project |
+| Windsurf               | IDE Agent         | Clone into project |
+| Cline                  | VS Code Agent     | Clone into project |
+| Dify                   | Workflow Platform | Use as Code node or external API Tool |
+| LangChain / CrewAI     | Frameworks        | Wrap `misttrack-skills` as a Tool |
+
 ## Documentation
 
 - [Full API Docs](./SKILL.md)
 - [MistTrack Official Docs](https://docs.misttrack.io/)
 - [Common Error Messages](https://docs.misttrack.io/support/common-error-messages)
+
+---
+
+<a name="chinese"></a>
+
+# MistTrack Skills
+
+MistTrack OpenAPI 的 AI Agent 技能包，用于加密货币地址风险分析、AML 合规检测和链上交易追踪。
+
+## 简介
+
+[MistTrack](https://misttrack.io/) 是由 [SlowMist](https://cn.slowmist.com/) 开发的反洗钱追踪工具（AML），收录超过 4 亿个地址和 50 万条威胁情报。
+
+- 支持 **OpenClaw、Claude Code** 以及其他主流 Agent 平台
+- 可与 **Bitget Wallet Skill** / **Trust Wallet Skills** / **Binance Skills** / **OKX Agent Skills** 集成 —— 在任何转账前自动执行 MistTrack 地址安全检查
+- 支持识别并解析多签地址（Multi-Signature Addresses）
+- 支持 **x402 Payment**，在没有 API Key 的情况下，可以使用 x402 支付
+
+## 安装
+
+```bash
+npx skills add slowmist/misttrack-skills
+```
+
+## 项目发布平台
+
+- [Skills](https://skills.sh/slowmist/misttrack-skills/misttrack-skills)
+- [Clawhub](https://clawhub.ai/MistTrack/misttrack-aml-skills)
+
+## 提问技巧
+
+### 🔍 快速风险检测（KYT）
+
+- 帮我检测 `0x6487B5006904f3Db3C4a3654409AE92b87eD442f` 这个 ETH 地址的风险评分
+- 这个 TRX 地址 `TNfK1r5jb8Wa1Ph1MApjqJobsY8SPwj3Yh` 安全吗？有没有洗钱记录？
+- 帮我查一下这笔交易 `0xabc123...` 的风险评分，看看是否涉及制裁实体
+
+### 🧑‍💼 地址完整画像调查
+
+- 对 `0x6487B5006904f3Db3C4a3654409AE92b87eD442f` 做一个完整的链上调查，包括标签、余额概览、风险评分、平台交互历史和主要交易对手
+- 这个 BTC 地址 `1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf` 的资金来源和流向是什么？
+- 帮我分析 `0xd90e2f925da726b50c4ed8d0fb90ad053324f31b` 的行为模式，它主要在 DEX、混币器还是交易所之间活动？
+
+### 🔑 账户多签信息检查
+
+- 帮我检查 `0x849D52316331967b6fF1198e5E32A0eB168D039d` 这个 ETH 地址是否是多签地址
+- 这个 TRX 地址 `TJCnKsPa7y5okkXvQAidZBzqx3QyQ6sxMW` 是否是多签地址
+- 这个 BTC 地址 `3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy` 是否是多签地址
+
+### 💸 转账前安全检测
+
+> 配合 **Bitget Wallet Skill** / **Trust Wallet Skills** / **Binance Skills** / **OKX Agent Skills** 使用，转账前自动检测收款地址
+
+- 将我的 0.1 ETH 兑换成 USDT 到 `0x6487B5006904f3Db3C4a3654409AE92b87eD442f`（会自动检测目标地址风险）
+- 将我的 100 TRX 发送到 `TNfK1r5jb8Wa1Ph1MApjqJobsY8SPwj3Yh` 这个地址
+- 帮我把 500 USDT 从 BNB Chain 转到 `0x28C6c06298d514Db089934071355E5743bf21d60`
+
+### 🔗 交易溯源与资金流向
+
+- 追踪 `0x6487B5006904f3Db3C4a3654409AE92b87eD442f` 的资金去向，重点看转出到哪些地址
+- 这个地址跟 Tornado Cash 有没有过直接或间接交互？
+- 帮我查 `TNfK1r5jb8Wa1Ph1MApjqJobsY8SPwj3Yh` 最近的交易对手，看看主要资金来自哪里
+
+### ℹ️ 状态与支持查询
+
+- MistTrack 支持 Solana 上的 USDT 吗？
+- 帮我列出 MistTrack 目前支持的所有代币
+
+## 支持的 API
+
+| API 端点 | 功能 |
+|----------|------|
+| `v1/status` | 获取 API 状态和支持代币列表 |
+| `v1/address_labels` | 获取地址标签（实体名称、地址类型） |
+| `v1/address_overview` | 获取地址余额和统计数据 |
+| `v2/risk_score` | 获取地址/交易风险评分（同步） |
+| `v2/risk_score_create_task` | 创建风险评分任务（异步） |
+| `v2/risk_score_query_task` | 查询风险评分任务结果（异步） |
+| `v1/transactions_investigation` | 交易调查（转入/转出流向分析） |
+| `v1/address_action` | 地址行为分析（DEX/Exchange/Mixer 占比） |
+| `v1/address_trace` | 地址画像（平台交互、恶意事件、关联信息） |
+| `v1/address_counterparty` | 交易对手分析 |
+
+## 支持的区块链
+
+Bitcoin、Ethereum、TRON、BNB Smart Chain、Polygon、Arbitrum、Optimism、Base、Avalanche、zkSync Era、Toncoin、Solana、Litecoin、Dogecoin、Bitcoin Cash、Merlin Chain、HashKey Chain、Sui、IoTeX
+
+## 快速开始
+
+1. 在 [MistTrack 控制台](https://dashboard.misttrack.io/upgrade) 使用邮箱验证码登录，然后订阅标准版套餐（新用户可以选择 10 美金的限时体验套餐），付款后即可[创建 API Key](https://dashboard.misttrack.io/apikeys)
+2. 设置环境变量（推荐）：
+   ```bash
+   export MISTTRACK_API_KEY=your_api_key_here
+   ```
+3. 参考 `SKILL.md` 中的完整 API 文档
+4. 参考 `scripts/` 目录中的示例脚本
+
+## 示例脚本
+
+```bash
+export MISTTRACK_API_KEY=your_api_key_here
+
+# 单个地址风险评分
+python scripts/risk_check.py --address 0x... --coin ETH
+
+# 批量异步风险评分
+python scripts/batch_risk_check.py --input addresses.txt --coin ETH
+
+# 完整地址调查
+python scripts/address_investigation.py --address 0x... --coin ETH
+
+# 转账前安全检测
+python scripts/transfer_security_check.py --address 0x... --chain eth
+
+# 账户多签信息检查
+python3 scripts/multisig_analysis.py --address 0x... --chain eth
+
+```
+
+## 使用 x402 支付 (按次计费)
+
+当您没有 MistTrack API Key 时，推荐使用 x402 支付协议进行按次付费调用。目前支持通过 EVM (EIP-3009) 使用 USDC 进行支付。
+
+```bash
+# 例子: CLI 命令行调用进行支付
+python3 scripts/pay.py pay \
+  --url https://openapi.misttrack.io/x402/address_labels?address=0x... \
+  --private-key <your_private_key> \
+  --chain-id 8453
+```
+
+## API 速率限制
+
+| 套餐 | 速率 | 每日限额 |
+|------|------|----------|
+| Standard | 1 次/秒 | 10,000 次/天 |
+| Compliance | 5 次/秒 | 50,000 次/天 |
+| Enterprise | 无限制 | 无限制 |
+
+## 兼容平台
+
+### ✅ 推荐工具
+
+| 平台 | 类型 | 使用方式 |
+|-----|------|---------|
+| OpenClaw | 原生平台 | 从 Clawhub 安装 skill |
+| Claude Code | CLI Agent | 克隆仓库 |
+| Codex CLI | CLI Agent | 克隆仓库 |
+| Crush | CLI Agent | 克隆仓库 |
+| Cursor | IDE Agent | 克隆到项目中 |
+| Windsurf | IDE Agent | 克隆到项目中 |
+| Cline | VS Code Agent | 克隆到项目中 |
+| Dify | 工作流平台 | 作为 Code 节点或外部 API Tool 使用 |
+| LangChain / CrewAI | 框架 | 将 `misttrack-skills` 封装为 Tool |
+
+## 文档
+
+- [完整 API 文档](./SKILL.md)
+- [MistTrack 官方文档](https://docs.misttrack.io/)
+- [常见错误消息](https://docs.misttrack.io/support/common-error-messages)
+
+---

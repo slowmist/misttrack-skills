@@ -12,10 +12,11 @@ MistTrack 单地址风险评分检查脚本
 """
 
 import argparse
-import os
-import requests
 import json
+import os
 import sys
+
+import requests
 
 
 BASE_URL = "https://openapi.misttrack.io"

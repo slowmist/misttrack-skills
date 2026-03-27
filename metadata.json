@@ -1,8 +1,8 @@
 {
-  "version": "1.0.0",
+  "version": "1.5.0",
   "organization": "SlowMist",
-  "date": "February 2026",
-  "abstract": "MistTrack OpenAPI 技能包 - 基于 MistTrack 反洗钱追踪系统的 AI Agent 工具，支持加密货币地址风险评分（AML/KYT/KYA）、地址标签查询、地址概览、地址画像、交易调查、行为分析和交易对手分析。支持 BTC、ETH、TRX、BNB、SOL 等20+条链上的200+代币。",
+  "date": "March 2026",
+  "abstract": "MistTrack OpenAPI Toolkit—an AI-powered agent toolkit driven by the MistTrack Anti-Money Laundering (AML) tracking system. It supports cryptocurrency address risk scoring (AML/KYT/KYA), address tag lookup, address overviews, address profiling, transaction investigation, behavioral analysis, and counterparty analysis. The toolkit also includes multi-signature (multisig) address identification and permission analysis—detecting Gnosis Safe wallets on ETH/EVM chains, TRON native permission multisig, and Bitcoin P2SH/P2WSH/P2TR address formats. The toolkit supports over 200 tokens across more than 20 blockchains, including BTC, ETH, TRX, BNB, and SOL.",
   "supported_apis": [
     "v1/status",
     "v1/address_labels",
@@ -20,5 +20,15 @@
     "https://docs.misttrack.io/",
     "https://docs.misttrack.io/openapi/overview",
     "https://dashboard.misttrack.io"
+  ],
+  "environment_variables": [
+    {
+      "name": "MISTTRACK_API_KEY",
+      "description": "Your MistTrack API key used to authenticate requests."
+    },
+    {
+      "name": "X402_PRIVATE_KEY",
+      "description": "Hex-encoded EVM/Solana private key used for x402 payments"
+    }
   ]
 }
