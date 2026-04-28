@@ -76,7 +76,7 @@ npx skills add slowmist/misttrack-skills
 | `v1/status` | API status & supported token list |
 | `v1/address_labels` | Address labels (entity name, type) |
 | `v1/address_overview` | Address balance & statistics |
-| `v2/risk_score` | Address / tx risk score (sync) |
+| `v3/risk_score` | Address / tx risk score (sync; tx queries support `direction=deposit|withdraw`) |
 | `v2/risk_score_create_task` | Create risk score task (async) |
 | `v2/risk_score_query_task` | Query task result (async, no rate limit) |
 | `v1/transactions_investigation` | Transaction flow analysis (in/out) |
@@ -105,6 +105,9 @@ export MISTTRACK_API_KEY=your_api_key_here
 
 # Single address risk score
 python scripts/risk_check.py --address 0x... --coin ETH
+
+# Single transaction risk score
+python scripts/risk_check.py --txid 0x... --coin ETH --direction deposit
 
 # Batch async risk scoring
 python scripts/batch_risk_check.py --input addresses.txt --coin ETH
@@ -236,7 +239,7 @@ npx skills add slowmist/misttrack-skills
 | `v1/status` | 获取 API 状态和支持代币列表 |
 | `v1/address_labels` | 获取地址标签（实体名称、地址类型） |
 | `v1/address_overview` | 获取地址余额和统计数据 |
-| `v2/risk_score` | 获取地址/交易风险评分（同步） |
+| `v3/risk_score` | 获取地址/交易风险评分（同步；交易查询支持 `direction=deposit|withdraw`） |
 | `v2/risk_score_create_task` | 创建风险评分任务（异步） |
 | `v2/risk_score_query_task` | 查询风险评分任务结果（异步） |
 | `v1/transactions_investigation` | 交易调查（转入/转出流向分析） |
@@ -265,6 +268,9 @@ export MISTTRACK_API_KEY=your_api_key_here
 
 # 单个地址风险评分
 python scripts/risk_check.py --address 0x... --coin ETH
+
+# 单笔交易风险评分
+python scripts/risk_check.py --txid 0x... --coin ETH --direction deposit
 
 # 批量异步风险评分
 python scripts/batch_risk_check.py --input addresses.txt --coin ETH

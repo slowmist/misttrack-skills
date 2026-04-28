@@ -6,6 +6,7 @@ MistTrack 单地址风险评分检查脚本
     export MISTTRACK_API_KEY=YOUR_KEY
     python risk_check.py --address 0x... --coin ETH
     python risk_check.py --txid 0x... --coin ETH
+    python risk_check.py --txid 0x... --coin ETH --direction withdraw
 
     # 也可通过命令行参数传入（优先级低于环境变量）
     python risk_check.py --address 0x... --coin ETH --api-key YOUR_KEY
@@ -30,17 +31,24 @@ RISK_LEVEL_COLOR = {
 RESET = "\033[0m"
 
 
-def get_risk_score(coin: str, api_key: str, address: str = None, txid: str = None) -> dict:
-    """调用 v2/risk_score 接口获取风险评分"""
+def get_risk_score(
+    coin: str,
+    api_key: str,
+    address: str = None,
+    txid: str = None,
+    direction: str = "deposit",
+) -> dict:
+    """调用 v3/risk_score 接口获取风险评分"""
     params = {"coin": coin, "api_key": api_key}
     if address:
         params["address"] = address
     elif txid:
         params["txid"] = txid
+        params["direction"] = direction
     else:
         raise ValueError("address 或 txid 至少传一个")
 
-    response = requests.get(f"{BASE_URL}/v2/risk_score", params=params, timeout=30)
+    response = requests.get(f"{BASE_URL}/v3/risk_score", params=params, timeout=30)
     response.raise_for_status()
     return response.json()
 
@@ -60,6 +68,7 @@ def print_risk_report(data: dict, target: str):
     hacking_event = data.get("hacking_event", "")
     detail_list = data.get("detail_list", [])
     risk_detail = data.get("risk_detail", [])
+    address_label = data.get("address_label", "")
     risk_report_url = data.get("risk_report_url", "")
 
     color = RISK_LEVEL_COLOR.get(risk_level, "")
@@ -70,6 +79,8 @@ def print_risk_report(data: dict, target: str):
     print(f"  目标地址/交易: {target}")
     print(f"  风险评分:      {color}{score}{RESET}")
     print(f"  风险级别:      {color}{risk_level}{RESET}")
+    if address_label:
+        print(f"  地址标签:      {address_label}")
 
     if hacking_event:
         print(f"  安全事件:      {hacking_event}")
@@ -92,6 +103,19 @@ def print_risk_report(data: dict, target: str):
             percent = item.get("percent", 0)
             print(f"  {entity:<25} {risk_type:<20} {exposure:<10} {hop_num:<6} {volume:<15,.2f} {percent:.3f}%")
 
+            hop_dic = item.get("hop_dic")
+            if hop_dic:
+                path_parts = []
+                for hop_level in sorted(
+                    hop_dic,
+                    key=lambda value: (0, int(value)) if str(value).isdigit() else (1, str(value)),
+                ):
+                    addresses = hop_dic.get(hop_level) or []
+                    if addresses:
+                        path_parts.append(f"{hop_level}: {', '.join(addresses)}")
+                if path_parts:
+                    print(f"    路径: {' -> '.join(path_parts)}")
+
     if risk_report_url:
         print(f"\n  PDF 报告: {risk_report_url}")
 
@@ -112,6 +136,12 @@ def main():
     parser = argparse.ArgumentParser(description="MistTrack 地址风险评分检查工具")
     parser.add_argument("--address", help="要查询的地址")
     parser.add_argument("--txid", help="要查询的交易哈希")
+    parser.add_argument(
+        "--direction",
+        choices=("deposit", "withdraw"),
+        default="deposit",
+        help="txid 查询方向（deposit/withdraw，默认 deposit；仅在 --txid 时生效）",
+    )
     parser.add_argument("--coin", required=True, help="代币类型（如 ETH、BTC、TRX、USDT-TRC20）")
     parser.add_argument("--api-key", dest="api_key", help="MistTrack API Key（优先使用环境变量 MISTTRACK_API_KEY）")
     parser.add_argument("--with-labels", action="store_true", help="同时获取地址标签信息")
@@ -125,8 +155,8 @@ def main():
         print("错误：请设置环境变量 MISTTRACK_API_KEY 或使用 --api-key 参数", file=sys.stderr)
         sys.exit(1)
 
-    if not args.address and not args.txid:
-        print("错误：--address 或 --txid 至少提供一个", file=sys.stderr)
+    if bool(args.address) == bool(args.txid):
+        print("错误：--address 和 --txid 必须且只能提供一个", file=sys.stderr)
         sys.exit(1)
 
     target = args.address or args.txid
@@ -149,6 +179,7 @@ def main():
             api_key=api_key,
             address=args.address,
             txid=args.txid,
+            direction=args.direction,
         )
 
         if args.json_output:

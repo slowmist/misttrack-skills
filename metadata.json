@@ -1,5 +1,5 @@
 {
-  "version": "1.5.0",
+  "version": "1.5.1",
   "organization": "SlowMist",
   "date": "March 2026",
   "abstract": "MistTrack OpenAPI Toolkit—an AI-powered agent toolkit driven by the MistTrack Anti-Money Laundering (AML) tracking system. It supports cryptocurrency address risk scoring (AML/KYT/KYA), address tag lookup, address overviews, address profiling, transaction investigation, behavioral analysis, and counterparty analysis. The toolkit also includes multi-signature (multisig) address identification and permission analysis—detecting Gnosis Safe wallets on ETH/EVM chains, TRON native permission multisig, and Bitcoin P2SH/P2WSH/P2TR address formats. The toolkit supports over 200 tokens across more than 20 blockchains, including BTC, ETH, TRX, BNB, and SOL.",
@@ -7,7 +7,7 @@
     "v1/status",
     "v1/address_labels",
     "v1/address_overview",
-    "v2/risk_score",
+    "v3/risk_score",
     "v2/risk_score_create_task",
     "v2/risk_score_query_task",
     "v1/transactions_investigation",
